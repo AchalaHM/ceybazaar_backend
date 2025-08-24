@@ -10,6 +10,7 @@ public class OrderDTO {
     private String customerEmail;
     private String address;
     private String region;
+    private Double shippingCost;
     private String cardName;
     private String cardNumber;
 
@@ -67,6 +68,14 @@ public class OrderDTO {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public Double getShippingCost() {
+        return shippingCost;
+    }
+
+    public void setShippingCost(Double shippingCost) {
+        this.shippingCost = shippingCost;
     }
 
     public String getCardName() {

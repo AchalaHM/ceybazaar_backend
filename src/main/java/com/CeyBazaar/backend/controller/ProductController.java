@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/Products")
@@ -23,18 +24,24 @@ public class ProductController {
     @PostMapping("/NewProductCat")
     public ResponseEntity<Response<String>> addNewProductCat(@RequestBody ProductCatDTO productCatDTO){
         return ResponseEntity.ok(productService.addNewProductCat(productCatDTO));
-    }
+    } //done fe
 
     @PostMapping("/NewProduct")
-    public ResponseEntity<Response<String>> addNewProduct(@ModelAttribute ProductDTO productDTO ,
-                                                          @RequestParam MultipartFile imageFile){
-        return ResponseEntity.ok(productService.addNewProduct(productDTO , imageFile));
-    }
+    public ResponseEntity<Response<String>> addNewProduct(@RequestPart ProductDTO productDTO ,
+                                                          @RequestParam MultipartFile imageFile ,
+                                                          @RequestParam List<MultipartFile> additionalImages){
+        return ResponseEntity.ok(productService.addNewProduct(productDTO , imageFile , additionalImages));
+    } // done frontend
 
     @GetMapping("/ViewProductList")
     public ResponseEntity<Response<List<ProductDTO>>> viewProductList(){
         return ResponseEntity.ok(productService.viewProductList());
-    }
+    } // done fe
+
+    @GetMapping("/ViewLatestProductList")
+    public ResponseEntity<Response<List<ProductDTO>>> viewLatestProductList(){
+        return ResponseEntity.ok(productService.viewLatestProductList());
+    } // done fe
 
     @GetMapping("/Product/{id}")
     public ResponseEntity<Response<ProductDTO>> getProductById(@PathVariable int id){
@@ -44,5 +51,12 @@ public class ProductController {
     @GetMapping("/ViewProductCatList")
     public ResponseEntity<Response<List<ProductCatDTO>>> viewProductCatList(){
         return ResponseEntity.ok(productService.viewProductCatList());
-    }
+    } //done fe
+
+    @PostMapping("/GetSimilarProducts")
+    public ResponseEntity<Response<List<ProductDTO>>> viewSimilarProductList(@RequestBody Map<String, Integer> request){
+        int id = request.get("categoryId");
+        int productId = request.get("productId");
+        return ResponseEntity.ok(productService.viewSimilarProductList(id , productId));
+    }  // done fe
 }

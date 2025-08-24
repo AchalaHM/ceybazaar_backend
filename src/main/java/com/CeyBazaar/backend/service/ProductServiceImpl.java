@@ -5,6 +5,7 @@ import com.CeyBazaar.backend.dto.ProductDTO;
 import com.CeyBazaar.backend.dto.Response;
 import com.CeyBazaar.backend.entity.Product;
 import com.CeyBazaar.backend.entity.ProductCat;
+import com.CeyBazaar.backend.entity.ProductImage;
 import com.CeyBazaar.backend.repository.ProductCatRepository;
 import com.CeyBazaar.backend.repository.ProductRepository;
 import com.CeyBazaar.backend.util.Constants;
@@ -55,7 +56,7 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public Response<String> addNewProduct(ProductDTO productDTO , MultipartFile imageFile) {
+    public Response<String> addNewProduct(ProductDTO productDTO, MultipartFile imageFile, List<MultipartFile> additionalImages) {
         try{
             Optional<ProductCat> productCat = productCatRepository.findById(productDTO.getProductCat().getId());
             if(productCat.isPresent()){
@@ -67,7 +68,7 @@ public class ProductServiceImpl implements ProductService{
                 product.setDescription(productDTO.getDescription());
                 product.setAddedBy(productDTO.getAddedBy());
                 product.setAddedOn(LocalDate.now());
-                product.setProductCat(productDTO.getProductCat());
+                product.setProductCat(productCat.get());
 
                 if (imageFile != null && !imageFile.isEmpty()) {
                     String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
@@ -75,14 +76,32 @@ public class ProductServiceImpl implements ProductService{
                     Files.createDirectories(imagePath.getParent());
                     Files.write(imagePath, imageFile.getBytes());
                     product.setImagePath(imagePath.toString());
-
                     productRepository.save(product);
+
+                    if (additionalImages != null && !additionalImages.isEmpty()) {
+                        for (MultipartFile image : additionalImages) {
+                            if (!image.isEmpty()) {
+                                String additionalFileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
+                                Path additionalImagePath = Paths.get(Constants.UPLOAD_DIRECTORY, additionalFileName);
+                                Files.createDirectories(additionalImagePath.getParent());
+                                Files.write(additionalImagePath, image.getBytes());
+
+                                ProductImage productImage = new ProductImage();
+                                productImage.setImagePath(additionalImagePath.toString());
+                                productImage.setProduct(product);
+                                product.getProductImages().add(productImage);
+                            }
+                        }
+                        productRepository.save(product); // saves cascade images
+                    }
                     logger.info("New Product added successfully " + productDTO.getProductName());
                     return new Response<>(Constants.SUCCESS , "New Product added successfully " , "New Product added successfully " + productDTO.getProductName());
                 } else {
                     logger.error("Image is required for added new product");
                     return new Response<>(Constants.NOT_FOUND , "Image Not found" , "Image is required for add new product");
                 }
+
+
             } else {
                 logger.error("Product category not found");
                 return new Response<>(Constants.NOT_FOUND , "Category not found" , null);
@@ -98,7 +117,40 @@ public class ProductServiceImpl implements ProductService{
     public Response<List<ProductDTO>> viewProductList() {
         try{
             List<ProductDTO> productDTOS = new ArrayList<>();
-            List<Product> products = productRepository.findAll();
+            List<Product> products = productRepository.findAllByOrderByAddedOnDesc();
+
+            for(Product product : products){
+                ProductDTO productDTO = new ProductDTO();
+                productDTO.setId(product.getId());
+                productDTO.setProductName(product.getProductName());
+                productDTO.setPrice(product.getPrice());
+                productDTO.setQuantity(product.getQuantity());
+                productDTO.setWeight(product.getWeight());
+                productDTO.setDescription(product.getDescription());
+                productDTO.setAddedBy(product.getAddedBy());
+                productDTO.setAddedOn(product.getAddedOn());
+                productDTO.setUpdateBy(product.getUpdateBy());
+                productDTO.setUpdatedOn(product.getUpdatedOn());
+                productDTO.setTerminatedBy(product.getTerminatedBy());
+                productDTO.setProductCatName(product.getProductCat().getCategoryName());
+                productDTO.setImagePath(product.getImagePath());
+
+                productDTOS.add(productDTO);
+            }
+
+            logger.info( "Product list retrieve successfully" );
+            return new Response<>(Constants.SUCCESS ,"Product list retrieve successfully" , productDTOS);
+        } catch (Exception ex){
+            logger.error("Error while retrieving product list | " + ex.getMessage());
+            return new Response<>(Constants.RUNTIME_EXCEPTION ,"Error while retrieving product list", null);
+        }
+    }
+
+    @Override
+    public Response<List<ProductDTO>> viewLatestProductList() {
+        try{
+            List<ProductDTO> productDTOS = new ArrayList<>();
+            List<Product> products = productRepository.findAllByLatestAddedOnDate();
 
             for(Product product : products){
                 ProductDTO productDTO = new ProductDTO();
@@ -148,7 +200,20 @@ public class ProductServiceImpl implements ProductService{
                 productDTO.setUpdatedOn(product.getUpdatedOn());
                 productDTO.setTerminatedBy(product.getTerminatedBy());
                 productDTO.setProductCatName(product.getProductCat().getCategoryName());
+                productDTO.setProductCatId(product.getProductCat().getId());
                 productDTO.setImagePath(product.getImagePath());
+
+                // Add all images (main + additional) to imagePaths list
+                List<String> imagePaths = new ArrayList<>();
+                if (product.getImagePath() != null) {
+                    imagePaths.add(product.getImagePath());
+                }
+                if (product.getProductImages() != null && !product.getProductImages().isEmpty()) {
+                    for (ProductImage productImage : product.getProductImages()) {
+                        imagePaths.add(productImage.getImagePath());
+                    }
+                }
+                productDTO.setImagePaths(imagePaths);
 
                 logger.info("Product retrieved successfully for ID: " + id);
                 return new Response<>(Constants.SUCCESS, "Product retrieved successfully", productDTO);
@@ -161,6 +226,7 @@ public class ProductServiceImpl implements ProductService{
             return new Response<>(Constants.RUNTIME_EXCEPTION, "Error while retrieving product", null);
         }
     }
+
 
     @Override
     public Response<List<ProductCatDTO>> viewProductCatList() {
@@ -181,6 +247,45 @@ public class ProductServiceImpl implements ProductService{
         } catch(Exception ex) {
             logger.error("Error while retrieving product category list | " + ex.getMessage());
             return new Response<>(Constants.RUNTIME_EXCEPTION ,"Error while retrieving product category list", null);
+        }
+    }
+
+    @Override
+    public Response<List<ProductDTO>> viewSimilarProductList(int id , int productId){
+        try{
+            List<ProductDTO> productDTOs = new ArrayList<>();
+            List<Product> products = productRepository.findAllByProductCat_IdAndIdNot(id , productId);
+
+            for(Product product : products){
+                ProductDTO productDTO = new ProductDTO();
+                productDTO.setId(product.getId());
+                productDTO.setProductName(product.getProductName());
+                productDTO.setPrice(product.getPrice());
+                productDTO.setQuantity(product.getQuantity());
+                productDTO.setWeight(product.getWeight());
+                productDTO.setDescription(product.getDescription());
+                productDTO.setAddedBy(product.getAddedBy());
+                productDTO.setAddedOn(product.getAddedOn());
+                productDTO.setUpdateBy(product.getUpdateBy());
+                productDTO.setUpdatedOn(product.getUpdatedOn());
+                productDTO.setTerminatedBy(product.getTerminatedBy());
+                productDTO.setProductCatName(product.getProductCat().getCategoryName());
+                productDTO.setProductCatId(product.getProductCat().getId());
+                productDTO.setImagePath(product.getImagePath());
+
+                productDTOs.add(productDTO);
+            }
+
+            if(productDTOs.isEmpty()){
+                logger.error("No similar products found");
+                return new Response<>(Constants.NOT_FOUND , "No similar products found" , null);
+            } else {
+                logger.info("Similar product list retrieved successfully");
+                return new Response<>(Constants.SUCCESS , "Similar product list retrieved successfully" , productDTOs);
+            }
+        } catch (Exception ex){
+            logger.error("Internal server error");
+            return new Response<>(Constants.RUNTIME_EXCEPTION , "Internal server error" , null);
         }
     }
 }

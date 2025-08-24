@@ -3,6 +3,7 @@ package com.CeyBazaar.backend.dto;
 import com.CeyBazaar.backend.entity.ProductCat;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class ProductDTO {
     private int id;
@@ -17,9 +18,12 @@ public class ProductDTO {
     private String updatedOn;
     private String terminatedBy;
     private ProductCat productCat;
-
+    private int productCatId;
     private String productCatName;
     private String imagePath;
+
+    private List<String> imagePaths;
+
 
     public int getId() {
         return id;
@@ -132,4 +136,20 @@ public class ProductDTO {
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
+
+    public int getProductCatId() {
+        return productCatId;
+    }
+
+    public void setProductCatId(int productCatId) {
+        this.productCatId = productCatId;
+    }
+    public List<String> getImagePaths() {
+        return imagePaths;
+    }
+    public void setImagePaths(List<String> imagePaths) {
+        this.imagePaths = imagePaths;
+    }
+
+
 }

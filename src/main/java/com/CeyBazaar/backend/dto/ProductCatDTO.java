@@ -10,9 +10,7 @@ public class ProductCatDTO {
 
     private int id;
     private String categoryName;
-    private LocalDateTime addedOn;
-    private String addedBy;
-    private List<Product> products;
+
 
     public int getId() {
         return id;
@@ -30,27 +28,4 @@ public class ProductCatDTO {
         this.categoryName = categoryName;
     }
 
-    public LocalDateTime getAddedOn() {
-        return addedOn;
-    }
-
-    public void setAddedOn(LocalDateTime addedOn) {
-        this.addedOn = addedOn;
-    }
-
-    public String getAddedBy() {
-        return addedBy;
-    }
-
-    public void setAddedBy(String addedBy) {
-        this.addedBy = addedBy;
-    }
-
-    public List<Product> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<Product> products) {
-        this.products = products;
-    }
 }

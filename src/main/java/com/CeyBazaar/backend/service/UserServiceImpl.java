@@ -1,6 +1,7 @@
 package com.CeyBazaar.backend.service;
 
 import com.CeyBazaar.backend.dto.LoginDTO;
+import com.CeyBazaar.backend.dto.LoginResponseDto;
 import com.CeyBazaar.backend.dto.Response;
 import com.CeyBazaar.backend.dto.UserDTO;
 import com.CeyBazaar.backend.entity.User;
@@ -55,7 +56,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public Response<String> userLogin(LoginDTO loginDTO) {
+    public Response<LoginResponseDto> userLogin(LoginDTO loginDTO) {
         // Find user by email
         User user = userRepository.findByUserEmail(loginDTO.getUserEmail())
                 .orElse(null);
@@ -66,16 +67,24 @@ public class UserServiceImpl implements UserService{
         }
 
         // Compare encrypted passwords (frontend-provided vs database-stored)
-        if (!user.getPassword().equals(loginDTO.getPassword())) {
+        if (!user.getPassword().equals(EncryptionUtil.encrypt(loginDTO.getPassword()))) {
             logger.error("Invalid email or password for email: " + loginDTO.getUserEmail());
             return new Response<>(Constants.NOT_FOUND, "Invalid email or password", null);
         }
 
         // Generate JWT token
         String token = jwtUtil.generateToken(user.getUserEmail());
+        String userName = user.getUserName();
+        String userType = user.getUserType().getUserType();
+
+        LoginResponseDto loginResponseDto = new LoginResponseDto();
+        loginResponseDto.setUserName(userName);
+        loginResponseDto.setUserType(userType);
+        loginResponseDto.setToken(token);
+
 
         logger.info("User logged in successfully: " + user.getUserEmail());
-        return new Response<>(Constants.SUCCESS, "Login successful", token);
+        return new Response<>(Constants.SUCCESS, "Login successful", loginResponseDto);
     }
 
 }

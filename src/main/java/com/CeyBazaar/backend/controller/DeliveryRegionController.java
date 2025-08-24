@@ -19,10 +19,10 @@ public class DeliveryRegionController {
     @PostMapping("/NewDeliveryRegion")
     public ResponseEntity<Response<String>> addNewRgion(@RequestBody DeliveryRegionDTO deliveryRegionDTO){
         return ResponseEntity.ok(deliveryRegionService.addNewDeliveryRegion(deliveryRegionDTO));
-    }
+    } // done frontend
 
     @GetMapping("/ViewDeliveryRegions")
     public ResponseEntity<Response<List<DeliveryRegionDTO>>> viewDeliveryRegion(){
         return ResponseEntity.ok(deliveryRegionService.viewDeliveryRegion());
-    }
+    } //done frontend
 }

@@ -1,6 +1,7 @@
 package com.CeyBazaar.backend.controller;
 
 import com.CeyBazaar.backend.dto.LoginDTO;
+import com.CeyBazaar.backend.dto.LoginResponseDto;
 import com.CeyBazaar.backend.dto.Response;
 import com.CeyBazaar.backend.dto.UserDTO;
 import com.CeyBazaar.backend.service.UserService;
@@ -26,7 +27,7 @@ public class UserController {
     }
 
     @PostMapping("/Login")
-    public Response<String> loginUser(@RequestBody LoginDTO loginDTO) {
+    public Response<LoginResponseDto> loginUser(@RequestBody LoginDTO loginDTO) {
         return userService.userLogin(loginDTO);
     }
 

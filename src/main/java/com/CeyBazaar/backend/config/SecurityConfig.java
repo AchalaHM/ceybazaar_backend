@@ -23,18 +23,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .csrf(csrf -> csrf.disable()) // Disable CSRF protection
+                .cors() // ✅ Enable CORS support
+                .and()
+                .csrf(csrf -> csrf.disable()) // Disable CSRF
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/User/**").permitAll()
                         .requestMatchers("/Products/ViewProductList/**").permitAll()
+                        .requestMatchers("/Products/ViewLatestProductList/**").permitAll()
                         .requestMatchers("/Products/ViewProductCatList/**").permitAll()
-                        .requestMatchers("/home/ec2-user/uploads/**").permitAll()
+                        .requestMatchers("/Products/GetSimilarProducts/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/Products/Product/**").permitAll()
                         .requestMatchers("/Region/ViewDeliveryRegions").permitAll()
                         .requestMatchers("/Orders/NewOrder").permitAll()
-                        .anyRequest().authenticated() // All other requests require authentication
+                        .requestMatchers("/Orders/notify").permitAll()
+                        .requestMatchers("/Orders/check-status").permitAll()
+                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class); // Add JWT filter
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }

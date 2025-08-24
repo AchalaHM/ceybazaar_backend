@@ -14,7 +14,9 @@ public class Order {
     private int id;
     private String orderId;
     private String status;
+    private String deliveryStatus;
     private double totalCost;
+    private double shippingCost;
     private LocalDate addedOn;
     private LocalDate updatedOn;
     private LocalDate terminatedOn;
@@ -51,12 +53,28 @@ public class Order {
         this.status = status;
     }
 
+    public String getDeliveryStatus() {
+        return deliveryStatus;
+    }
+
+    public void setDeliveryStatus(String deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
+    }
+
     public double getTotalCost() {
         return totalCost;
     }
 
     public void setTotalCost(double totalCost) {
         this.totalCost = totalCost;
+    }
+    
+    public double getShippingCost() {
+        return shippingCost;
+    }
+
+    public void setShippingCost(double shippingCost) {
+        this.shippingCost = shippingCost;
     }
 
     public LocalDate getAddedOn() {
