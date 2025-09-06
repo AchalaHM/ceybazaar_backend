@@ -19,7 +19,8 @@ public class WebConfig {
                         .allowedOrigins(
                                 "http://localhost:3000",
                                 "http://localhost:5173",
-                                "http://ceybazaar.s3-website.eu-north-1.amazonaws.com"
+                                "http://ceybazaar.s3-website.eu-north-1.amazonaws.com",
+                                "https://ceybazaar-admin.vercel.app/"
                         )
                         // Allow requests from localhost:3000
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Specify allowed methods
